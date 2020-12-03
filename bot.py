@@ -23,14 +23,14 @@ client = commands.Bot(command_prefix=">", case_insensitive=True)
 
 @client.event
 async def on_ready():
-    print("Pog Bot is ready")
+    print("Little Light is ready")
     print(bungoAuthURI)
     test_channel = client.get_channel(781576402931417089)
     await test_channel.send("Little Light is here")
 
 @client.event
 async def on_disconnect():
-    print("Bog Bot is off")
+    print("Little Light is off")
     await destiny.close()
     test_channel = client.get_channel(781576402931417089)
     await test_channel.send("Little Light disconnected")
