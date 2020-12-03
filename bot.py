@@ -26,14 +26,14 @@ async def on_ready():
     print("Pog Bot is ready")
     print(bungoAuthURI)
     test_channel = client.get_channel(781576402931417089)
-    await test_channel.send("Pog Bot is here")
+    await test_channel.send("Little Light is here")
 
 @client.event
 async def on_disconnect():
     print("Bog Bot is off")
     await destiny.close()
     test_channel = client.get_channel(781576402931417089)
-    await test_channel.send("Pog Bot disconnected")
+    await test_channel.send("Little Light disconnected")
 
 @client.event
 async def on_message(message):
@@ -131,4 +131,4 @@ async def info(ctx):
 
 
 
-client.run("NzgwOTM5NTIwMzIwMjA4OTI2.X72Ymg.diHNGLqapRbDgfEiI1sMDIKlnNM")
+client.run(os.getenv("Discord-Bot-Token"))
