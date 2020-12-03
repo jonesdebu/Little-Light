@@ -4,6 +4,7 @@ import requests
 import pydest
 import os
 from dotenv import load_dotenv
+import traceback
 #import json
 
 
@@ -41,7 +42,7 @@ async def on_message(message):
 
     if "atraks" in message.content.lower():
         response = "**BEEP BOOP* \* fuck atraks"
-        await message.channel.send(response, file = discord.File('Atraks.jpg'))
+        await message.channel.send(response, file = discord.File('images/Atraks.jpg'))
 
     elif "raid" in message.content.lower():
         response = "RAID"
@@ -54,7 +55,7 @@ async def on_message(message):
 async def pog(ctx): #function name is the command to respond to
     # This is the bot's response
     try:
-        await ctx.send("\**BEEP BOOP* \* pog indeed", file=discord.File('flop.jpg'))
+        await ctx.send("\**BEEP BOOP* \* pog indeed", file=discord.File('images/flop.jpg'))
 
     except:
         await ctx.send("something went wrong I might not have upload file permissions")
@@ -65,7 +66,7 @@ async def pog(ctx): #function name is the command to respond to
 async def indeed(ctx): #function name is the command to respond to
     # This is the bot's response
     try:
-        await ctx.send("\**BEEP BOOP* \* indeed", file=discord.File('Indeed.gif')) # *""* for italics \* escape slash to just use the icon
+        await ctx.send("\**BEEP BOOP* \* indeed", file=discord.File('images/Indeed.gif')) # *""* for italics \* escape slash to just use the icon
 
     except:
         await ctx.send("something went wrong I might not have upload file permissions")
@@ -116,13 +117,13 @@ async def info(ctx):
         myEmbed.add_field(name="Pog On Demand:", value=">Pog", inline=False)
         myEmbed.add_field(name="Indeed On Demand:", value=">Indeed", inline=False)
         myEmbed.set_footer(text="Little Light")
-        file = discord.File("D2Icon.png")
+        file = discord.File("images/D2Icon.png")
         myEmbed.set_image(url="attachment://D2Icon.png")
         myEmbed.set_author(name="Neo", url="https://github.com/jonesdebu?tab=repositories", icon_url="https://github.githubassets.com/images/modules/open_graph/github-mark.png ")
         await ctx.send(file=file, embed=myEmbed)
 
-    except exception as e:
-        print(e)
+    except Exception:
+        traceback.print_exc()
         await ctx.send("Something went wrong I might not have embed permissions")
 
 
