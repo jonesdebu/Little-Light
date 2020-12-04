@@ -78,16 +78,30 @@ async def get(ctx, username=None):
         return
     try:
         id_json = await destiny.api.search_destiny_player(3, username)
-        membership_id = id_json['Response'][0]['membershipId']
-        print(membership_id)
+        bungie_id = id_json['Response'][0]['membershipId']
+        #print(bungie_id)
         myComponents = [200]
-        profile_json = await destiny.api.get_profile(3, membership_id, myComponents) #platform replaced by a variable
-        print(profile_json)
+        accounts_json = await destiny.api.get_membership_data_by_id(bungie_id, membership_type=-1)
+        #print(accounts_json)
+        accounts = accounts_json['Response']['destinyMemberships'] # there is a key called primary membership id but i dont know what it does yet so im going to get the specific pc memebrshipId
+        print(accounts)
+        current_account = accounts[0]['membershipId']
+        current_platform = accounts[0]['membershipType']
+        profile_json = await destiny.api.get_profile(current_platform, current_account, myComponents) #platform replaced by a variable
+        #print(profile_json)
         charData = profile_json['Response']['characters']['data']
         playerChars = list(charData.keys())
-        testFirstCharLight = charData[playerChars[0]]['light']
+        print(playerChars)
+        charLevels = []
+        for i in range(len(playerChars)):
+            charLevels.append(str(charData[playerChars[i]]['light']))
+
+        #charLevels.append(str(charData[playerChars[0]]['light'])) #This needs to be in a loop for every char in playerChars
+        """charLevels.append(str(charData[playerChars[1]]['light']))
+        charLevels.append(str(charData[playerChars[2]]['light']))"""
+        level_string = ' '.join(charLevels)
         #print(testFirstCharLight)
-        await ctx.send('\**BEEP BOOP* \* Your first character\'s light level is: ' + str(testFirstCharLight)) # return the first character's light level
+        await ctx.send('\**BEEP BOOP* \* Your  character light levels are: ' + level_string) # return the first character's light level"""
 
 
     except (IndexError, KeyError) as e:
