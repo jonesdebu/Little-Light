@@ -125,4 +125,5 @@ dmypy.json
 .pyre/
 
 # My directories
+placeholder.txt
 

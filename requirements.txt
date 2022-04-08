@@ -1,0 +1,6 @@
+aiohttp
+aiobungie
+# ssl
+urllib3
+motor
+dnspython
