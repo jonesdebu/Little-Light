@@ -5,6 +5,7 @@ import ssl
 import urllib.parse
 import asyncio
 import motor.motor_asyncio
+import asyncio
 
 '''
 Credit to nxtlo for the example on oauth2 with aiohttp and aiobungie:
@@ -31,22 +32,14 @@ client = aiobungie.RESTPool(os.environ.get("api_key"), client_secret=os.environ.
                             client_id=int(os.environ['client_id']))
 
 # mongo_client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get("MONGO_CONNECTION_URL"))
-#
 # connection_status = mongo_client.test  # Cluster
 # db = mongo_client['Little-Light']  # database
 # collection = db['Users']  # database table
+# num = await collection.count_documents({})
 # print(db)
+# print(num)
+#
 # exit()
-
-# implement user queue pop users from queue/dict when they are authenticated
-# create function to update the queue/dict so that discord names can be sent from bot.py
-
-authentication_queue = []
-
-
-# OR
-
-# create mongodb document with discord name in function then update that document
 
 
 def combinational_logic_get_oauth2_url(user):
