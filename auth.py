@@ -3,9 +3,8 @@ import aiobungie
 import os
 import ssl
 import urllib.parse
-import asyncio
-import motor.motor_asyncio
-import asyncio
+from db import db_upload_user
+
 
 '''
 Credit to nxtlo for the example on oauth2 with aiohttp and aiobungie:
@@ -21,7 +20,7 @@ def parse_url(url: str) -> str:
     return parser.query.removeprefix('code=')
 
 
-def parse_discord(url: str) -> str:  # TODO: Need to correctly parse the url for the discord username
+def parse_discord(url: str) -> str:
     """Parse the url for discord username"""
     parser = urllib.parse.urlparse(url)
     username = url.rsplit('_', 1)[-1]
@@ -30,16 +29,6 @@ def parse_discord(url: str) -> str:  # TODO: Need to correctly parse the url for
 
 client = aiobungie.RESTPool(os.environ.get("api_key"), client_secret=os.environ.get('client_secret'),
                             client_id=int(os.environ['client_id']))
-
-# mongo_client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get("MONGO_CONNECTION_URL"))
-# connection_status = mongo_client.test  # Cluster
-# db = mongo_client['Little-Light']  # database
-# collection = db['Users']  # database table
-# num = await collection.count_documents({})
-# print(db)
-# print(num)
-#
-# exit()
 
 
 def combinational_logic_get_oauth2_url(user):
@@ -57,25 +46,18 @@ async def get_oauth2_url():
 
 @router.get("/redirect")
 async def redirect(request: aiohttp.web.Request) -> aiohttp.web.Response:
-    print(str(request.url))
     discord_name = parse_discord(str(request.url))
-    print(discord_name)
     if code := parse_url(str(request.url)):
         code = str(code)
         tokens = ""
-        async with client.acquire() as rest:
+        async with client.acquire() as rest: # tokens is an OAuth2Response from aiobungie builders.py line 61
             tokens = await rest.fetch_oauth2_tokens(code)
-            print(tokens)
-            text_file = open("placeholder.txt", "wt")
-            n = text_file.write(tokens.access_token)
-            text_file.close()
             request.app["token"] = tokens.access_token
 
         async with client.acquire() as rest:
             my_user = await rest.fetch_current_user_memberships(tokens.access_token)
-            print(my_user.get("bungieNetUser").get("uniqueName"))
-
-            # TODO: Store data in db (needs to be done before user starts making calls from bot.py
+            bungieNetUser = my_user.get("bungieNetUser").get("uniqueName")
+            db_upload_user(discord_name, bungieNetUser, tokens.access_token, tokens.refresh_token)
             raise aiohttp.web.HTTPFound(location='/me', reason="Oauth2 Success!")
 
     else:

@@ -1,6 +1,8 @@
-aiohttp
-aiobungie
+aiohttp~=3.7.4.post0
+aiobungie~=0.2.6a2
 # ssl
 urllib3
 motor
 dnspython
+pymongo~=3.12.3
+discord~=1.7.3

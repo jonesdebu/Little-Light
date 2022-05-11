@@ -6,11 +6,15 @@ import aiobungie
 import auth
 import os
 import asyncio
+from db import db_get_auth  # Need to implement auth check for bot commands that require oauth2
 
 # OAuth Information
 
 # Discord Bot Client
 client = commands.Bot(command_prefix=">", case_insensitive=True)
+
+aiobungie_client = aiobungie.Client(os.environ.get("api_key"),
+                                    rest_client=aiobungie.RESTClient(os.environ.get("api_key"), max_retries=2))
 
 
 @client.event
@@ -54,13 +58,11 @@ async def pog(ctx):  # function name is the command to respond to
 @client.command()
 async def join(ctx):
     try:
-        async with auth.client.acquire() as rest:
-            text_file = open("placeholder.txt", "r")
-            token = text_file.read()
-            print(token)
-            text_file.close()
-            my_user = await rest.fetch_current_user_memberships(token)
-            await ctx.send(my_user.get("bungieNetUser").get("uniqueName"))
+        user = db_get_auth(ctx.author.name)
+        if user:
+            await ctx.send(user)
+        else:
+            await ctx.author.send("You must sign up first: >generate_oauth_url")
 
     except Exception as e:
         print(e)
