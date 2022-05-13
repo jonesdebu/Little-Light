@@ -62,7 +62,7 @@ async def join(ctx):
         if user:
             await ctx.send(user)
         else:
-            await ctx.author.send("You must sign up first: >generate_oauth_url")
+            await ctx.send("You must sign up first: >generate_oauth_url")
 
     except Exception as e:
         print(e)
@@ -72,8 +72,11 @@ async def join(ctx):
 @client.command()
 async def generate_oauth_url(ctx):
     try:
-        url = auth.combinational_logic_get_oauth2_url(ctx.author.name)
-        await ctx.author.send(url)
+        if db_get_auth(ctx.author.name):
+            await ctx.send("You are already a user must use refresh token")
+        else:
+            url = auth.combinational_logic_get_oauth2_url(ctx.author.name)
+            await ctx.author.send(url)
 
     except Exception as e:
         print(e)
@@ -112,6 +115,7 @@ async def info(ctx):
     try:
         myEmbed = discord.Embed(title="Help", description="Commands",
                                 color=0x000055)  # color is hex for RGB RRGGBB so completely green == 00ff00
+        myEmbed.add_field(name="Get Join Code:", value=">join", inline=False)
         myEmbed.add_field(name="Get Bot Version:", value=">Version", inline=False)
         myEmbed.add_field(name="Pog On Demand:", value=">Pog", inline=False)
         myEmbed.add_field(name="Indeed On Demand:", value=">Indeed", inline=False)
