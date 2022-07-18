@@ -3,10 +3,13 @@ from discord.ext import commands
 import traceback
 import json
 import aiobungie
+from aiobungie.internal import enums
 import auth
 import os
 import asyncio
 from db import db_get_auth  # Need to implement auth check for bot commands that require oauth2
+from test import get_characters, get_characters_stats
+from pymongo import MongoClient
 
 # OAuth Information
 
@@ -62,7 +65,7 @@ async def join(ctx):
         if user:
             await ctx.send(user)
         else:
-            await ctx.send("You must sign up first: >generate_oauth_url")
+            await ctx.send("You must sign up first")
 
     except Exception as e:
         print(e)
@@ -70,17 +73,83 @@ async def join(ctx):
 
 
 @client.command()
-async def generate_oauth_url(ctx):
+async def register(ctx):
     try:
         if db_get_auth(ctx.author.name):
-            await ctx.send("You are already a user must use refresh token")
+            await ctx.send("You are already a user")
         else:
             url = auth.combinational_logic_get_oauth2_url(ctx.author.name)
-            await ctx.author.send(url)
+            await ctx.send("Check your messages for the registration link")
+            await ctx.author.send(f"Follow this link and sign in to register: {url}")
 
     except Exception as e:
         print(e)
         await ctx.send("Error check logs")
+
+
+async def build_character_embed(class_type, character):
+    char_embed = discord.Embed(title=class_type)
+    char_embed.set_image(url=character['emblem'])
+    char_embed.add_field(name='Light', value=character['light'], inline=False)
+    char_embed.add_field(name='Level', value=character['level'], inline=False)
+    char_embed.add_field(name='Gender', value=character['gender'], inline=False)
+    char_embed.add_field(name='Race', value=character['race'], inline=False)
+    char_embed.add_field(name='Total Time Played', value=character['total_played_time'], inline=False)
+    char_embed.set_thumbnail(url=character['emblem_icon'])
+    return char_embed
+
+
+async def build_character_stats_embed(class_type, content):
+    print(content)
+    stat_embed = discord.Embed(title=class_type)
+    stat_embed.add_field(name='Mobility', value=content['MOBILITY'], inline=False)
+    stat_embed.add_field(name='Recovery', value=content['RECOVERY'], inline=False)
+    stat_embed.add_field(name='Resilience', value=content['RESILIENCE'], inline=False)
+    stat_embed.add_field(name='Intellect', value=content['INTELLECT'], inline=False)
+    stat_embed.add_field(name='Strength', value=content['STRENGTH'], inline=False)
+    stat_embed.add_field(name='Discipline', value=content['DISCIPLINE'], inline=False)
+    return stat_embed
+
+
+@client.command()
+async def eyesupguardian(ctx):
+    try:
+        if db_get_auth(ctx.author.name):
+            mongo_client = MongoClient(os.environ.get("MONGO_CONNECTION_URL"))
+            user = mongo_client['Little-Light']['Users'].find_one({"discordName": ctx.author.name})
+            mongo_client.close()
+            mem_id = user.get("membershipId")
+            chars = await get_characters(user.get("membershipId"), user.get("membershipType"),
+                                         [aiobungie.ComponentType.CHARACTERS])
+            for class_type, content in chars.items():
+                my_embed = await build_character_embed(class_type, content)
+                await ctx.send(embed=my_embed)
+
+        else:
+            await ctx.send("You must sign up first")
+
+    except Exception as e:
+        print(e)
+
+
+@client.command()
+async def buildstats(ctx):
+    try:
+        if db_get_auth(ctx.author.name):
+            mongo_client = MongoClient(os.environ.get("MONGO_CONNECTION_URL"))
+            user = mongo_client['Little-Light']['Users'].find_one({"discordName": ctx.author.name})
+            mongo_client.close()
+            mem_id = user.get("membershipId")
+            chars = await get_characters_stats(user.get("membershipId"), user.get("membershipType"),
+                                         [aiobungie.ComponentType.CHARACTERS])
+            for class_type, content in chars.items():
+                my_embed = await build_character_stats_embed(class_type, content)
+                await ctx.send(embed=my_embed)
+
+        else:
+            await ctx.send("You must sign up first")
+    except Exception as e:
+        print(e)
 
 
 @client.command()
@@ -90,7 +159,8 @@ async def indeed(ctx):  # function name is the command to respond to
         await ctx.send("indeed",
                        file=discord.File('images/Indeed.gif'))  # *""* for italics \* escape slash to just use the icon
 
-    except:
+    except Exception as e:
+        print(e)
         await ctx.send("something went wrong I might not have upload file permissions")
 
 
@@ -106,7 +176,8 @@ async def version(ctx):
                            icon_url="https://github.githubassets.com/images/modules/open_graph/github-mark.png ")
         await ctx.send(embed=myEmbed)
 
-    except:
+    except Exception as e:
+        print(e)
         await ctx.send("Something went wrong I might not have embed permissions")
 
 
@@ -126,7 +197,8 @@ async def info(ctx):
                            icon_url="https://github.githubassets.com/images/modules/open_graph/github-mark.png ")
         await ctx.send(file=file, embed=myEmbed)
 
-    except Exception:
+    except Exception as e:
+        print(e)
         traceback.print_exc()
         await ctx.send("Something went wrong I might not have embed permissions")
 

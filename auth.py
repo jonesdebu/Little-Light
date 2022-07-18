@@ -4,7 +4,7 @@ import os
 import ssl
 import urllib.parse
 from db import db_upload_user
-
+from aiobungie.internal import enums
 
 '''
 Credit to nxtlo for the example on oauth2 with aiohttp and aiobungie:
@@ -50,16 +50,27 @@ async def redirect(request: aiohttp.web.Request) -> aiohttp.web.Response:
     if code := parse_url(str(request.url)):
         code = str(code)
         tokens = ""
-        async with client.acquire() as rest: # tokens is an OAuth2Response from aiobungie builders.py line 61
+        async with client.acquire() as rest:  # tokens is an OAuth2Response from aiobungie builders.py line 61
             tokens = await rest.fetch_oauth2_tokens(code)
             request.app["token"] = tokens.access_token
 
         async with client.acquire() as rest:
             my_user = await rest.fetch_current_user_memberships(tokens.access_token)
             bungieNetUser = my_user.get("bungieNetUser").get("uniqueName")
-            db_upload_user(discord_name, bungieNetUser, tokens.access_token, tokens.refresh_token)
-            raise aiohttp.web.HTTPFound(location='/me', reason="Oauth2 Success!")
+            membershipType = my_user.get("destinyMemberships")[0].get("membershipType")
+            membershipId = my_user.get("destinyMemberships")[0].get("membershipId")
 
+        async with client.acquire() as rest:
+            my_profile = await rest.fetch_profile(membershipId, membershipType, [enums.ComponentType["CHARACTERS"]])
+            characters = []
+            # TODO: Maybe store the characters all in their own db table and link using memebrship type, id,
+            #  and bungieNetUser
+            for character in my_profile.get("characters").get("data"):
+                char_id = my_profile.get("characters").get("data").get(character).get("characterId")
+                characters.append(char_id)
+            db_upload_user(discord_name, bungieNetUser, tokens.access_token, tokens.refresh_token, membershipType,
+                           membershipId, characters)
+            raise aiohttp.web.HTTPFound(location='/me', reason="Oauth2 Success!")
     else:
         # Otherwise return 404 and couldn't authenticate.
         raise aiohttp.web.HTTPNotFound(text="Code not found and couldn't authenticate.")
@@ -88,11 +99,9 @@ def start_server():  # TODO: Need to automatically close the server connection (
     # TODO: Won't need for production (use https server instead of localhost)
     ctx.load_cert_chain(certfile="../pkeys/cacert.pem", keyfile="../pkeys/little_light_pkey")
 
-    # TODO: Run on cloud localhost
+    # TODO: Run on cloud localhost (exposed as url) (AWS)
     aiohttp.web.run_app(app, host="localhost", port=8000, ssl_context=ctx)
 
 
 if __name__ == '__main__':
     start_server()
-
-# TODO: As a test write a bot function that will give a user's join code
