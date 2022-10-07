@@ -14,7 +14,10 @@ from pymongo import MongoClient
 # OAuth Information
 
 # Discord Bot Client
-client = commands.Bot(command_prefix=">", case_insensitive=True)
+intents = discord.Intents.default()
+intents.message_content = True
+
+client = commands.Bot(command_prefix=">", case_insensitive=True, intents=intents)
 
 aiobungie_client = aiobungie.Client(os.environ.get("api_key"),
                                     rest_client=aiobungie.RESTClient(os.environ.get("api_key"), max_retries=2))
