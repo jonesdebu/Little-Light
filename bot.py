@@ -15,7 +15,7 @@ from pymongo import MongoClient
 
 # Discord Bot Client
 intents = discord.Intents.default()
-intents.message_content = True
+intents.messages = True
 
 client = commands.Bot(command_prefix=">", case_insensitive=True, intents=intents)
 
@@ -25,7 +25,7 @@ aiobungie_client = aiobungie.Client(os.environ.get("api_key"),
 
 @client.event
 async def on_ready():
-    print("Lil Light in da house")
+    print("Lil Light")
     test_channel = client.get_channel(795189216304037889)
     await test_channel.send("Lil Light in da house")
 
@@ -59,6 +59,17 @@ async def pog(ctx):  # function name is the command to respond to
     except Exception as e:
         print(e)
         await ctx.send("something went wrong I might not have upload file permissions")
+
+
+@client.command()
+async def test(ctx):  # function name is the command to respond to
+    # This is the bot's response
+    try:
+        await ctx.send("test")
+
+    except Exception as e:
+        print(e)
+        await ctx.send("something went wrong I might not have permissions")
 
 
 @client.command()
@@ -144,7 +155,7 @@ async def buildstats(ctx):
             mongo_client.close()
             mem_id = user.get("membershipId")
             chars = await get_characters_stats(user.get("membershipId"), user.get("membershipType"),
-                                         [aiobungie.ComponentType.CHARACTERS])
+                                               [aiobungie.ComponentType.CHARACTERS])
             for class_type, content in chars.items():
                 my_embed = await build_character_stats_embed(class_type, content)
                 await ctx.send(embed=my_embed)
