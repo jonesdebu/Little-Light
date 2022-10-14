@@ -44,7 +44,7 @@ async def get_oauth2_url():
         print(oauth_url)
 
 
-@router.get("/redirect")  # Bungie portal redirect url: AWS url/redirect mot likely
+@router.get("/redirect")  # Bungie portal redirect url: AWS url/redirect most likely
 async def redirect(request: aiohttp.web.Request) -> aiohttp.web.Response:
     discord_name = parse_discord(str(request.url))
     if code := parse_url(str(request.url)):

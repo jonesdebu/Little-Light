@@ -14,8 +14,10 @@ from pymongo import MongoClient
 # OAuth Information
 
 # Discord Bot Client
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.messages = True
+intents.dm_messages = True
+
 
 client = commands.Bot(command_prefix=">", case_insensitive=True, intents=intents)
 
