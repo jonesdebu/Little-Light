@@ -88,6 +88,11 @@ async def me(request: aiohttp.web.Request) -> aiohttp.web.Response:
         raise aiohttp.web.HTTPUnauthorized(text="No access token found, Unauthorized.")
 
 
+@router.get('/')
+async def home(request: aiohttp.web.Request) -> aiohttp.web.Response:
+    return aiohttp.web.json_response("Welcome To Little Light")
+
+
 def start_server():  # TODO: Need to automatically close the server connection (maybe once the tokens are received?)
     # asyncio.new_event_loop().run_until_complete(get_oauth2_url())
     # url = combinational_logic_get_oauth2_url()
