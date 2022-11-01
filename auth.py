@@ -46,6 +46,7 @@ async def get_oauth2_url():
 
 @router.get("/redirect")  # Bungie portal redirect url: AWS url/redirect most likely
 async def redirect(request: aiohttp.web.Request) -> aiohttp.web.Response:
+    print("here")
     discord_name = parse_discord(str(request.url))
     if code := parse_url(str(request.url)):
         code = str(code)
@@ -63,7 +64,7 @@ async def redirect(request: aiohttp.web.Request) -> aiohttp.web.Response:
         async with client.acquire() as rest:
             my_profile = await rest.fetch_profile(membershipId, membershipType, [enums.ComponentType["CHARACTERS"]])
             characters = []
-            # TODO: Maybe store the characters all in their own db table and link using memebrship type, id,
+            # TODO: Maybe store the characters all in their own db table and link using membership type, id,
             #  and bungieNetUser
             for character in my_profile.get("characters").get("data"):
                 char_id = my_profile.get("characters").get("data").get(character).get("characterId")
@@ -85,11 +86,13 @@ async def me(request: aiohttp.web.Request) -> aiohttp.web.Response:
             # print(my_user.get("bungieNetUser").get("uniqueName"))
             return aiohttp.web.json_response(my_user)
     else:
+
         raise aiohttp.web.HTTPUnauthorized(text="No access token found, Unauthorized.")
 
 
 @router.get('/')
 async def home(request: aiohttp.web.Request) -> aiohttp.web.Response:
+    print("index")
     return aiohttp.web.json_response("Welcome To Little Light")
 
 
@@ -101,11 +104,10 @@ def start_server():  # TODO: Need to automatically close the server connection (
 
     ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 
-    # TODO: Won't need for production (use https server instead of localhost)
     ctx.load_cert_chain(certfile="../pkeys/cacert.pem", keyfile="../pkeys/little_light_pkey")
 
     # TODO: Run on cloud localhost (exposed as url) (AWS)
-    aiohttp.web.run_app(app, host="localhost", port=8000, ssl_context=ctx)
+    aiohttp.web.run_app(app, host="localhost", port=8000) #, ssl_context=ctx)
 
 
 if __name__ == '__main__':

@@ -38,18 +38,30 @@ async def get_characters_stats(membership_id, membership_type, components_list):
     return characters
 
 
-# async def get_manifest():
-#     print('downloading file')
-#     json_manifest = await aiobungie_client.rest.download_json_manifest()
-#     print('reading file')
-#     with open("manifest.json", "r") as f:
-#         manifest_json = json.loads(f.read())
-#         pprint.pprint(manifest_json['DestinyLoreDefinition'].keys())
+async def get_manifest():
+    print('downloading file')
+    json_manifest = await aiobungie_client.rest.download_json_manifest()
+    print('reading file')
+    with open("manifest.json", "r") as f:
+        manifest_json = json.loads(f.read())
+        pprint.pprint(manifest_json['DestinyLoreDefinition'].values())
+
+
+async def get_random_lore():
+    try:
+        with open("manifest.json", "r") as f:
+            manifest_json = json.loads(f.read())
+            manifest_lore_keys = list(manifest_json['DestinyLoreDefinition'].keys())
+            pprint.pprint(manifest_lore_keys[0])
+            print(manifest_json['DestinyLoreDefinition'][manifest_lore_keys[0]]['displayProperties']['description'])
+    except OSError as e:
+        print("Manifest not found downloading now.....")
+        json_manifest = await aiobungie_client.rest.download_json_manifest()
+        await get_random_lore()
 
 
 async def main():
-    pass
-    # await get_manifest()
+    await get_random_lore()
     # mongo_client = MongoClient(os.environ.get("MONGO_CONNECTION_URL"))
     # connection_status = mongo_client.test
     # db = mongo_client['Little-Light']

@@ -1,3 +1,5 @@
+import io
+import aiohttp
 import discord
 from discord.ext import commands
 import traceback
@@ -10,14 +12,47 @@ import asyncio
 from db import db_get_auth  # Need to implement auth check for bot commands that require oauth2
 from test import get_characters, get_characters_stats
 from pymongo import MongoClient
+import pprint
+import random
+from chatterbot import ChatBot
+from chatterbot.trainers import ListTrainer
+from chatterbot.trainers import ChatterBotCorpusTrainer
 
-# OAuth Information
+
+# Chat bot setup
+my_bot = ChatBot(name='PyBot', read_only=True,
+                 logic_adapters=['chatterbot.logic.MathematicalEvaluation',
+                                 'chatterbot.logic.BestMatch'])
+small_talk = ['hi there!',
+              'hi!',
+              'how do you do?',
+              'how are you?',
+              'i\'m cool.',
+              'fine, you?',
+              'always cool.',
+              'i\'m ok',
+              'glad to hear that.',
+              'i\'m fine',
+              'glad to hear that.',
+              'i feel awesome',
+              'excellent, glad to hear that.',
+              'not so good',
+              'sorry to hear that.',
+              'what\'s your name?',
+              'i\'m pybot. ask me a math question, please.']
+list_trainer = ListTrainer(my_bot)
+for item in small_talk:
+    list_trainer.train(item)
+
+corpus_trainer = ChatterBotCorpusTrainer(my_bot)
+corpus_trainer.train('chatterbot.corpus.english')
+corpus_trainer.train("chatterbot.corpus.english.greetings")
+corpus_trainer.train("chatterbot.corpus.english.conversations")
 
 # Discord Bot Client
 intents = discord.Intents.all()
 intents.messages = True
 intents.dm_messages = True
-
 
 client = commands.Bot(command_prefix=">", case_insensitive=True, intents=intents)
 
@@ -64,8 +99,59 @@ async def pog(ctx):  # function name is the command to respond to
 
 
 @client.command()
+async def talk(ctx, *, args):
+    try:
+        text_input = ''.join(args)
+        print(text_input)
+        response = f'{my_bot.get_response(text_input).text}'
+        await ctx.send(response)
+    except Exception as e:
+        print(e)
+
+
+@client.command()
+async def what_in_tarnation(ctx):
+    donkey_uri = 'https://www.google.com/imgres?imgurl=https%3A%2F%2Fi.kym-cdn.com%2Fentries%2Ficons%2Ffacebook%2F000' \
+                 '%2F040%2F002%2Fcover2.jpg&imgrefurl=https%3A%2F%2Fknowyourmeme.com%2Fmemes%2Fstaring-donkey&tbnid' \
+                 '=ggFmbBESth9CYM&vet=12ahUKEwj4kZat6fH6AhWXnWoFHe9dA34QMygBegUIARDNAQ..i&docid=R6iduo4JEOhF8M&w=1600' \
+                 '&h=900&q=donkey%20stare%20meme&client=safari&ved=2ahUKEwj4kZat6fH6AhWXnWoFHe9dA34QMygBegUIARDNAQ '
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(donkey_uri) as resp:
+                if resp.status != 200:
+                    return await ctx.send('Could not download file...')
+                data = io.BytesIO(await resp.read())
+                await ctx.send(file=discord.File(data, 'cool_image.png'))
+
+    except Exception as e:
+        print(e)
+
+
+@client.command()
+async def get_random_lore(ctx):
+    try:
+        with open("manifest.json", "r") as f:
+            manifest_json = json.loads(f.read())
+            manifest_lore_keys = list(manifest_json['DestinyLoreDefinition'].keys())
+            random_entry = random.choice(manifest_lore_keys)
+            pprint.pprint(random_entry)
+            lore = manifest_json['DestinyLoreDefinition'][random_entry]['displayProperties']['description']
+            # print(manifest_json['DestinyLoreDefinition'][random_entry]['displayProperties']['description'])
+            if len(lore) > 2000:  # TODO: Handle strings greater than 2000 characters long
+                # didn't think I'd use recursion in a personal project
+                await get_random_lore(ctx)
+            await ctx.send("""||```""" + manifest_json['DestinyLoreDefinition'][random_entry]['displayProperties']['description'] + """```||""")
+    except OSError as e:
+        print("Manifest not found downloading now.....")
+        await ctx.send('*Scanning database...*')
+        json_manifest = await aiobungie_client.rest.download_json_manifest()
+        # didn't think I'd use it twice
+        await get_random_lore(ctx)
+
+
+@client.command()
 async def test(ctx):  # function name is the command to respond to
-    # This is the bot's response
+    # This is the bots response
     try:
         await ctx.send("test")
 
@@ -81,7 +167,7 @@ async def join(ctx):
         if user:
             await ctx.send(user)
         else:
-            await ctx.send("You must sign up first")
+            await ctx.send("You must sign up first with >register")
 
     except Exception as e:
         print(e)
@@ -142,7 +228,7 @@ async def eyesupguardian(ctx):
                 await ctx.send(embed=my_embed)
 
         else:
-            await ctx.send("You must sign up first")
+            await ctx.send("You must sign up first with >register")
 
     except Exception as e:
         print(e)
@@ -163,7 +249,7 @@ async def buildstats(ctx):
                 await ctx.send(embed=my_embed)
 
         else:
-            await ctx.send("You must sign up first")
+            await ctx.send("You must sign up first with >register")
     except Exception as e:
         print(e)
 
