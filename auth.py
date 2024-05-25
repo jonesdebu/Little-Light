@@ -104,7 +104,8 @@ def start_server():  # TODO: Need to automatically close the server connection (
 
     ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 
-    ctx.load_cert_chain(certfile="../pkeys/cacert.pem", keyfile="../pkeys/little_light_pkey")
+    # TODO: Won't need for production (use https server instead of localhost)
+    ctx.load_cert_chain(certfile="../Certs/myCA.pem", keyfile="../Certs/myCa.key")
 
     # TODO: Run on cloud localhost (exposed as url) (AWS)
     aiohttp.web.run_app(app, host="localhost", port=8000) #, ssl_context=ctx)
