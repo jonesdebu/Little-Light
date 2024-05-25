@@ -5,8 +5,7 @@ import asyncio
 import json
 import pprint
 
-aiobungie_client = aiobungie.Client(os.environ.get("api_key"),
-                                    rest_client=aiobungie.RESTClient(os.environ.get("api_key"), max_retries=2))
+aiobungie_client = aiobungie.Client(os.environ.get("api_key"))
 
 
 async def get_characters(membership_id, membership_type, components_list):
